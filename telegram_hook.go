@@ -20,7 +20,7 @@ type TelegramHook struct {
 	authToken   string
 	targetID    string
 	apiEndpoint string
-	async bool
+	async       bool
 }
 
 // apiRequest encapsulates the request structure we are sending to the
@@ -63,7 +63,7 @@ func NewTelegramHookWithClient(appName, authToken, targetID string, client *http
 		authToken:   authToken,
 		targetID:    targetID,
 		apiEndpoint: apiEndpoint,
-		async: false,
+		async:       false,
 	}
 
 	for _, c := range config {
@@ -184,6 +184,14 @@ func (hook *TelegramHook) createMessage(entry *logrus.Entry) string {
 		msg = "<b>FATAL</b>"
 	case logrus.ErrorLevel:
 		msg = "<b>ERROR</b>"
+	case logrus.WarnLevel:
+		msg = "<b>Warn</b>"
+	case logrus.InfoLevel:
+		msg = "<b>Info</b>"
+	case logrus.DebugLevel:
+		msg = "<b>Debug</b>"
+	case logrus.TraceLevel:
+		msg = "<b>Trace</b>"
 	}
 
 	msg = strings.Join([]string{msg, hook.AppName}, "@")
@@ -218,9 +226,34 @@ func (hook *TelegramHook) Fire(entry *logrus.Entry) error {
 
 // Levels returns the log levels that the hook should be enabled for.
 func (hook *TelegramHook) Levels() []logrus.Level {
-	return []logrus.Level{
-		logrus.ErrorLevel,
-		logrus.FatalLevel,
-		logrus.PanicLevel,
+	level := make(map[string]logrus.Level)
+	level["panic"] = logrus.PanicLevel
+	level["fatal"] = logrus.FatalLevel
+	level["error"] = logrus.ErrorLevel
+	level["warn"] = logrus.WarnLevel
+	level["info"] = logrus.InfoLevel
+	level["debug"] = logrus.DebugLevel
+	level["trace"] = logrus.TraceLevel
+
+	var logrusLevel []logrus.Level
+
+	for k, v := range level {
+		logrusLevel = append(logrusLevel, v)
+		if k == logrus.GetLevel().String() {
+			break
+		}
+		fmt.Printf(k)
 	}
+
+	return logrusLevel
+
+	// return []logrus.Level{
+	// 	logrus.TraceLevel,
+	// 	logrus.DebugLevel,
+	// 	logrus.InfoLevel,
+	// 	logrus.WarnLevel,
+	// 	logrus.ErrorLevel,
+	// 	logrus.FatalLevel,
+	// 	logrus.PanicLevel,
+	// }
 }
