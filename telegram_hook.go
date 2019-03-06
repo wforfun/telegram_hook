@@ -201,6 +201,7 @@ func (hook *TelegramHook) createMessage(entry *logrus.Entry) string {
 		for k, v := range entry.Data {
 			msg = strings.Join([]string{msg, html.EscapeString(fmt.Sprintf("\t%s: %+v", k, v))}, "\n")
 		}
+		msg = strings.Join([]string{msg, html.EscapeString(fmt.Sprintf("\t%s: %+v", "time", entry.Time.Format(time.ANSIC)))}, "\n")
 		msg = strings.Join([]string{msg, "</pre>"}, "\n")
 	}
 	return msg
