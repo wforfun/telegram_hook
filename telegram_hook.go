@@ -19,6 +19,7 @@ type TelegramHook struct {
 	c           *http.Client
 	authToken   string
 	targetID    string
+	group       string
 	apiEndpoint string
 	async       bool
 }
@@ -45,14 +46,14 @@ type Config func(*TelegramHook)
 
 // NewTelegramHook creates a new instance of a hook targeting the
 // Telegram API.
-func NewTelegramHook(appName, authToken, targetID string, config ...Config) (*TelegramHook, error) {
+func NewTelegramHook(appName, authToken, targetID, group string, config ...Config) (*TelegramHook, error) {
 	client := &http.Client{}
-	return NewTelegramHookWithClient(appName, authToken, targetID, client, config...)
+	return NewTelegramHookWithClient(appName, authToken, targetID, group, client, config...)
 }
 
 // NewTelegramHook creates a new instance of a hook targeting the
 // Telegram API with custom http.Client.
-func NewTelegramHookWithClient(appName, authToken, targetID string, client *http.Client, config ...Config) (*TelegramHook, error) {
+func NewTelegramHookWithClient(appName, authToken, targetID, group string, client *http.Client, config ...Config) (*TelegramHook, error) {
 	apiEndpoint := fmt.Sprintf(
 		"https://api.telegram.org/bot%s",
 		authToken,
@@ -62,6 +63,7 @@ func NewTelegramHookWithClient(appName, authToken, targetID string, client *http
 		c:           client,
 		authToken:   authToken,
 		targetID:    targetID,
+		group:       group,
 		apiEndpoint: apiEndpoint,
 		async:       false,
 	}
@@ -202,6 +204,9 @@ func (hook *TelegramHook) createMessage(entry *logrus.Entry) string {
 			msg = strings.Join([]string{msg, html.EscapeString(fmt.Sprintf("\t%s: %+v", k, v))}, "\n")
 		}
 		msg = strings.Join([]string{msg, html.EscapeString(fmt.Sprintf("\t%s: %+v", "time", entry.Time.Format(time.ANSIC)))}, "\n")
+		if "" != hook.group {
+			msg = strings.Join([]string{msg, html.EscapeString(fmt.Sprintf("\t%s: %+v", "group", hook.group))}, "\n")
+		}
 		msg = strings.Join([]string{msg, "</pre>"}, "\n")
 	}
 	return msg
@@ -243,7 +248,6 @@ func (hook *TelegramHook) Levels() []logrus.Level {
 		if k == logrus.GetLevel().String() {
 			break
 		}
-		fmt.Printf(k)
 	}
 
 	return logrusLevel
